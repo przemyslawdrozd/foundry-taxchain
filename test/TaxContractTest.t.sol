@@ -13,7 +13,6 @@ contract TaxContractTest is Test {
 
     function setUp() external {
         DeployTaxContract deployer = new DeployTaxContract();
-
         taxContract = deployer.run();
     }
 
@@ -27,5 +26,34 @@ contract TaxContractTest is Test {
 
         // Assert
         assert(TAX_PAYER_1 == taxPayer);
+    }
+
+    function testShouldRevertIfUserExists() public {
+        // Arrange
+        address existingUser = address(1);
+        vm.prank(existingUser);
+
+        // First addition should succeed
+        taxContract.addTaxPayer();
+
+        // Act & Assert
+        vm.expectRevert(TaxContract.TaxContract__TaxPayerExists.selector);
+        vm.prank(existingUser);
+        taxContract.addTaxPayer();
+    }
+
+    function testAddMultipleTaxPayers() public {
+        // Arrange - Add the first taxpayer
+        vm.prank(TAX_PAYER_1);
+        taxContract.addTaxPayer();
+
+        // Act - Add a second, different taxpayer
+        vm.prank(TAX_PAYER_2);
+
+        // This should go through the loop without finding TAX_PAYER_2
+        taxContract.addTaxPayer();
+
+        // Assert - Check that both taxpayers are added
+        assertEq(taxContract.getTaxPayersLength(), 2, "There should be two taxpayers");
     }
 }
