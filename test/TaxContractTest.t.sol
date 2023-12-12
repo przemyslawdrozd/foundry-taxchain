@@ -56,4 +56,25 @@ contract TaxContractTest is Test {
         // Assert - Check that both taxpayers are added
         assertEq(taxContract.getTaxPayersLength(), 2, "There should be two taxpayers");
     }
+
+    function testShouldReturnsForGetterFunctions() public {
+        // Arrange
+        address testTaxPayer = address(1);
+
+        vm.prank(testTaxPayer);
+        taxContract.addTaxPayer();
+
+        // Act and Assert
+        uint256 taxpayersLength = taxContract.getTaxPayersLength();
+        assertEq(taxpayersLength, 1, "Incorrect number of taxpayers");
+
+        address taxpayerAtIndex = taxContract.getTaxPayerByIndex(0);
+        assertEq(taxpayerAtIndex, testTaxPayer, "Incorrect taxpayer at index");
+
+        uint256 taxpayerBalance = taxContract.getTaxPayerBalance(testTaxPayer);
+        assertEq(taxpayerBalance, 0, "Incorrect taxpayer balance");
+
+        uint256 contractBalance = taxContract.getTaxContractBalance();
+        assertEq(contractBalance, address(taxContract).balance, "Incorrect contract balance");
+    }
 }
