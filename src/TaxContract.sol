@@ -28,16 +28,24 @@ contract TaxContract {
         emit AddNewTaxPayer(msg.sender);
     }
 
-    function payTax() external payable {
+    function payTax(uint256 amount, address payable receiver) external payable {
         require(msg.value > 0, "Amount must be greater than 0");
 
         uint256 taxAmount = (msg.value * 5) / 100;
-        uint256 remainingAmount = msg.value - taxAmount;
+        // Calculate the net amount to be transferred to the receiver
+        uint256 netAmount = amount - taxAmount;
 
-        s_taxPayers[msg.sender] += remainingAmount;
+        // Transfer the net amount to the receiver
+        receiver.transfer(netAmount);
+
+        // Transfer the tax amount to the contract itself
+        payable(address(this)).transfer(taxAmount);
+
+        s_taxPayers[msg.sender] += taxAmount;
         payable(taxOfficeAddress).transfer(taxAmount);
 
-        emit TaxPaid(msg.sender, remainingAmount);
+        // Emit an event for the tax payment
+        emit TaxPaid(msg.sender, taxAmount);
     }
 
     function getTaxPayersLength() external view returns (uint256) {
