@@ -92,6 +92,23 @@ contract TaxContractTest is Test {
         assertEq(taxContract.getTaxContractBalance(), taxAmount);
     }
 
+    function testShouldRevertPayTaxWhenNotEnoughAmount() public {
+        // Arrange - Add the first taxpayer
+        vm.deal(TAX_PAYER_1, INIT_AMOUNT);
+        vm.prank(TAX_PAYER_1);
+        taxContract.addTaxPayer();
+
+        // Arrange - Add the second taxpayer
+        vm.deal(TAX_PAYER_2, INIT_AMOUNT);
+        vm.prank(TAX_PAYER_2);
+        taxContract.addTaxPayer();
+
+        // Act - Call testing function
+        vm.prank(TAX_PAYER_1);
+        vm.expectRevert(TaxContract.TaxContract__NotEnoughAmount.selector);
+        taxContract.payTax{value: 0}(payable(TAX_PAYER_2));
+    }
+
     function testShouldCalculateTaxAmount() public {
         // Arrange
         uint256 givenAmount = 100;
