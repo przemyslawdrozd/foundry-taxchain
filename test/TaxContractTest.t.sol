@@ -56,7 +56,41 @@ contract TaxContractTest is Test {
         taxContract.addTaxPayer();
 
         // Assert - Check that both taxpayers are added
-        assertEq(taxContract.getTaxPayersLength(), 2, "There should be two taxpayers");
+        assertEq(taxContract.getTaxPayersLength(), 2, "There should be two tax payers");
+    }
+
+    function testShouldPayTax() public {
+        // Arrange - Add the first taxpayer
+        vm.deal(TAX_PAYER_1, INIT_AMOUNT);
+        vm.prank(TAX_PAYER_1);
+        taxContract.addTaxPayer();
+
+        // Arrange - Add the second taxpayer
+        vm.deal(TAX_PAYER_2, INIT_AMOUNT);
+        vm.prank(TAX_PAYER_2);
+        taxContract.addTaxPayer();
+
+        uint256 transferAmount = 0.5 ether;
+
+        // Act - Call testing function
+        vm.prank(TAX_PAYER_1);
+        taxContract.payTax{value: 0.5 ether}(payable(TAX_PAYER_2));
+
+        // Assert
+        uint256 givenBalanceOfPayer1 = taxContract.getTaxPayerBalance(TAX_PAYER_1);
+        uint256 givenBalanceOfPayer2 = taxContract.getTaxPayerBalance(TAX_PAYER_2);
+
+        uint256 taxAmount = 0.025 ether;
+        uint256 expectedPayer2Balance = INIT_AMOUNT + transferAmount - taxAmount;
+
+        assertEq(TAX_PAYER_1.balance, 0.5 ether);
+        assertEq(TAX_PAYER_2.balance, expectedPayer2Balance);
+
+        assertEq(givenBalanceOfPayer1, taxAmount);
+        assertEq(givenBalanceOfPayer2, 0);
+
+        assertEq(taxContract.getTaxContractBalance(), taxAmount);
+    }
 
     function testShouldCalculateTaxAmount() public {
         // Arrange
