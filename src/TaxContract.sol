@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import {console} from "forge-std/Test.sol";
+
 contract TaxContract {
     error TaxContract__TaxPayerExists();
+    error TaxContract__NotEnoughAmount();
 
     address public taxOfficeAddress;
     mapping(address taxPayer => uint256 payedTaxAmount) private s_taxPayers;
-    address[] private s_taxPayerKeys;
+    address payable[] private s_taxPayerAddresses;
 
     event TaxPaid(address indexed payer, uint256 amount);
     event AddNewTaxPayer(address indexed taxPayer);
@@ -16,44 +19,50 @@ contract TaxContract {
     }
 
     function addTaxPayer() external {
-        for (uint256 i = 0; i < s_taxPayerKeys.length; i++) {
-            if (s_taxPayerKeys[i] == msg.sender) {
+        for (uint256 i = 0; i < s_taxPayerAddresses.length; i++) {
+            if (s_taxPayerAddresses[i] == msg.sender) {
                 revert TaxContract__TaxPayerExists();
             }
         }
 
         s_taxPayers[msg.sender] = 0;
-        s_taxPayerKeys.push(msg.sender);
+        s_taxPayerAddresses.push(payable(msg.sender));
 
         emit AddNewTaxPayer(msg.sender);
     }
 
-    function payTax(uint256 amount, address payable receiver) external payable {
-        require(msg.value > 0, "Amount must be greater than 0");
+    function payTax(address payable receiver) external payable {
+        if (msg.value <= 0) {
+            revert TaxContract__NotEnoughAmount();
+        }
+        console.log("msg.value", msg.value);
 
-        uint256 taxAmount = (msg.value * 5) / 100;
-        // Calculate the net amount to be transferred to the receiver
-        uint256 netAmount = amount - taxAmount;
+        uint256 taxAmount = _calculateTaxAmount(msg.value);
+        console.log("taxAmount", taxAmount);
 
-        // Transfer the net amount to the receiver
+        uint256 netAmount = msg.value - taxAmount;
+        console.log("netAmount", netAmount);
+
         receiver.transfer(netAmount);
 
-        // Transfer the tax amount to the contract itself
-        payable(address(this)).transfer(taxAmount);
-
         s_taxPayers[msg.sender] += taxAmount;
-        payable(taxOfficeAddress).transfer(taxAmount);
-
-        // Emit an event for the tax payment
         emit TaxPaid(msg.sender, taxAmount);
     }
 
-    function getTaxPayersLength() external view returns (uint256) {
-        return s_taxPayerKeys.length;
+    function _calculateTaxAmount(uint256 amount) public pure returns (uint256) {
+        return (amount * 5) / 100;
     }
 
-    function getTaxBalance(address taxpayer) external view returns (uint256) {
-        return s_taxPayers[taxpayer];
+    function getTaxPayersLength() external view returns (uint256) {
+        return s_taxPayerAddresses.length;
+    }
+
+    function getTaxPayerByIndex(uint256 indexOfTaxPayer) external view returns (address) {
+        return s_taxPayerAddresses[indexOfTaxPayer];
+    }
+
+    function getTaxPayerBalance(address taxPayer) external view returns (uint256) {
+        return s_taxPayers[taxPayer];
     }
 
     function getTaxContractBalance() external view returns (uint256) {

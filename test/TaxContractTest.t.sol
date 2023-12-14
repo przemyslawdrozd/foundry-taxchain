@@ -11,6 +11,8 @@ contract TaxContractTest is Test {
     address public TAX_PAYER_1 = makeAddr("TAX_PAYER_1");
     address public TAX_PAYER_2 = makeAddr("TAX_PAYER_2");
 
+    uint256 public constant INIT_AMOUNT = 1 ether;
+
     function setUp() external {
         DeployTaxContract deployer = new DeployTaxContract();
         taxContract = deployer.run();
@@ -42,7 +44,7 @@ contract TaxContractTest is Test {
         taxContract.addTaxPayer();
     }
 
-    function testAddMultipleTaxPayers() public {
+    function testshouldAddMultipleTaxPayers() public {
         // Arrange - Add the first taxpayer
         vm.prank(TAX_PAYER_1);
         taxContract.addTaxPayer();
@@ -55,6 +57,17 @@ contract TaxContractTest is Test {
 
         // Assert - Check that both taxpayers are added
         assertEq(taxContract.getTaxPayersLength(), 2, "There should be two taxpayers");
+
+    function testShouldCalculateTaxAmount() public {
+        // Arrange
+        uint256 givenAmount = 100;
+        uint256 expectedTaxAmount = 5;
+
+        // Act
+        uint256 calculatedTaxAmount = taxContract._calculateTaxAmount(givenAmount);
+
+        // Assert
+        assertEq(calculatedTaxAmount, expectedTaxAmount);
     }
 
     function testShouldReturnsForGetterFunctions() public {
