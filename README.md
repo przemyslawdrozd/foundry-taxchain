@@ -1,66 +1,14 @@
-## Foundry
+# TaxContract
+TaxContract is a Solidity smart contract developed for managing tax payments within a decentralized environment, specifically tailored for the Ethereum blockchain.
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Key Features
+Tax Office Address Management: The contract initializes with a specific tax office address, setting the tax authority within the contract.
 
-Foundry consists of:
+Tax Payer Registration: Allows new tax payers to register themselves. It checks for duplicates to prevent double registration.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+Tax Payment System: Facilitates tax payments from registered tax payers. The contract calculates the tax amount, ensures that the payment is above a minimum threshold, and transfers the net amount to the receiver.
 
-## Documentation
+Tax Calculation: Implements a simple tax calculation logic, deducting a fixed percentage (5%) from the transaction value as tax.
 
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+# Deploy on sepolia
+make deploy ARGS="--network sepolia"
