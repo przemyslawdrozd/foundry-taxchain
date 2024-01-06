@@ -8,7 +8,7 @@ import {TaxContract} from "../src/TaxContract.sol";
 contract DeployTaxContract is Script {
     function run() external returns (TaxContract) {
         vm.startBroadcast();
-        TaxContract taxContract = new TaxContract(msg.sender);
+        TaxContract taxContract = new TaxContract();
         vm.stopBroadcast();
         return taxContract;
     }

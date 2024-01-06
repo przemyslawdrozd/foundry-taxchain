@@ -6,16 +6,17 @@ import {console} from "forge-std/Test.sol";
 contract TaxContract {
     error TaxContract__TaxPayerExists();
     error TaxContract__NotEnoughAmount();
+    error TaxContract__NotTaxOfficeAddress();
 
-    address public taxOfficeAddress;
+    address public immutable i_taxOfficeAddress;
     mapping(address taxPayer => uint256 payedTaxAmount) private s_taxPayers;
     address payable[] private s_taxPayerAddresses;
 
     event TaxPaid(address indexed payer, uint256 amount);
     event AddNewTaxPayer(address indexed taxPayer);
 
-    constructor(address _taxOfficeAddress) {
-        taxOfficeAddress = _taxOfficeAddress;
+    constructor() {
+        i_taxOfficeAddress = msg.sender;
     }
 
     function addTaxPayer() external {
@@ -47,6 +48,25 @@ contract TaxContract {
 
         s_taxPayers[msg.sender] += taxAmount;
         emit TaxPaid(msg.sender, taxAmount);
+    }
+
+    modifier isOwner() {
+        if (msg.sender != i_taxOfficeAddress) {
+            revert TaxContract__NotTaxOfficeAddress();
+        }
+        _;
+    }
+
+    function withdraw() public isOwner {
+        uint256 taxPayersLength = s_taxPayerAddresses.length;
+        for (uint256 taxPayersIndex = 0; taxPayersIndex < taxPayersLength; taxPayersIndex++) {
+            address taxPayer = s_taxPayerAddresses[taxPayersIndex];
+            s_taxPayers[taxPayer] = 0;
+        }
+        s_taxPayerAddresses = new address payable[](0);
+
+        (bool callSuccess,) = payable(msg.sender).call{value: address(this).balance}("");
+        require(callSuccess, "Call failed");
     }
 
     function _calculateTaxAmount(uint256 amount) public pure returns (uint256) {
