@@ -121,6 +121,25 @@ contract TaxContractTest is Test {
         assertEq(calculatedTaxAmount, expectedTaxAmount);
     }
 
+    function testShouldWithdrawSuccessfullyByOwner() public {
+        // Arrange
+        address taxOfficeaddress = taxContract.i_taxOfficeAddress();
+        uint256 initialContractBalance = address(taxContract).balance;
+        uint256 initialOwnerBalance = taxOfficeaddress.balance;
+
+        // Act
+        vm.prank(taxOfficeaddress); // Simulating call by the owner
+        taxContract.withdraw();
+
+        // Assert
+        assertEq(address(taxContract).balance, 0, "Contract balance should be zero after withdrawal");
+        assertEq(
+            taxOfficeaddress.balance,
+            initialOwnerBalance + initialContractBalance,
+            "Owner should receive contract balance"
+        );
+    }
+
     function testShouldReturnsForGetterFunctions() public {
         // Arrange
         address testTaxPayer = address(1);
