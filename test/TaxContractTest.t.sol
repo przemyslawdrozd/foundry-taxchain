@@ -155,6 +155,7 @@ contract TaxContractTest is Test {
         address taxOfficeaddress = taxContract.i_taxOfficeAddress();
 
         // Add a taxpayer and simulate a tax payment
+        vm.deal(TAX_PAYER_1, INIT_AMOUNT);
         vm.prank(TAX_PAYER_1);
         taxContract.addTaxPayer();
 
@@ -169,8 +170,8 @@ contract TaxContractTest is Test {
         taxContract.withdraw();
 
         // Assert
-        // assertEq(taxContract.getTaxPayerBalance(TAX_PAYER_2), 0, "Taxpayer's balance should be reset to zero");
-        // assertEq(taxContract.getTaxPayersLength(), 0, "Taxpayer list should be empty");
+        assertEq(taxContract.getTaxPayerBalance(TAX_PAYER_2), 0, "Taxpayer's balance should be reset to zero");
+        assertEq(taxContract.getTaxPayersLength(), 0, "Taxpayer list should be empty");
     }
 
     function testShouldReturnsForGetterFunctions() public {
