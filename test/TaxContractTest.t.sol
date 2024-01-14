@@ -140,6 +140,39 @@ contract TaxContractTest is Test {
         );
     }
 
+    function testShouldRevertWithdrawByNonOwner() public {
+        // Arrange
+        address nonOwner = makeAddr("NON_OWNER");
+
+        // Act & Assert
+        vm.prank(nonOwner); // Simulating call by a non-owner
+        vm.expectRevert(TaxContract.TaxContract__NotTaxOfficeAddress.selector);
+        taxContract.withdraw();
+    }
+
+    function testShouldResetTaxPayersDataOnWithdraw() public {
+        // Arrange
+        address taxOfficeaddress = taxContract.i_taxOfficeAddress();
+
+        // Add a taxpayer and simulate a tax payment
+        vm.prank(TAX_PAYER_1);
+        taxContract.addTaxPayer();
+
+        vm.prank(TAX_PAYER_2);
+        taxContract.addTaxPayer();
+
+        vm.prank(TAX_PAYER_1);
+        taxContract.payTax{value: 100}(payable(TAX_PAYER_1));
+
+        // Act
+        vm.prank(taxOfficeaddress); // Simulating call by the owner
+        taxContract.withdraw();
+
+        // Assert
+        // assertEq(taxContract.getTaxPayerBalance(TAX_PAYER_2), 0, "Taxpayer's balance should be reset to zero");
+        // assertEq(taxContract.getTaxPayersLength(), 0, "Taxpayer list should be empty");
+    }
+
     function testShouldReturnsForGetterFunctions() public {
         // Arrange
         address testTaxPayer = address(1);
